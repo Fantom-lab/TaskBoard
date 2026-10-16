@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!-- Кодировка документа и адаптация к мобильным устройствам -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Заголовок страницы авторизации -->
+    <title>Вход — TaskBoard</title>
+
+    <!-- Общие стили приложения -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Стили, относящиеся только к странице входа и регистрации -->
+    <style>
+        /* Центрирование карточки авторизации на странице */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        /* Карточка с формами входа и регистрации */
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 32px;
+            box-sizing: border-box;
+            background: #171b2b;
+            border: 1px solid #30364c;
+            border-radius: 16px;
+            box-shadow: 0 16px 48px rgb(0 0 0 / 15%);
+        }
+
+        /* Заголовок карточки */
+        .auth-language-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 14px; }
+        .auth-language-row label { color: #a5acc3; font-size: 13px; }
+        .auth-language-row select { padding: 7px 9px; border: 1px solid #3b425b; border-radius: 7px; background: #101423; color: #fff; }
+        .auth-form button { border: 0; border-radius: 8px; background: #6878f5; color: #fff; font: inherit; }
+        .auth-form button:hover { background: #7d8bff; }
+        .auth-card h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        /* Описание страницы */
+        .auth-description {
+            margin-bottom: 24px;
+            color: #a5acc3;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* Вертикальная компоновка полей формы */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Подпись располагается над соответствующим полем */
+        .auth-form label {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        /* Единое оформление полей ввода */
+        .auth-form input {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            border: 1px solid #3b425b;
+            border-radius: 8px;
+            background: #101423;
+            color: #ffffff;
+            font: inherit;
+        }
+
+        /* Видимый индикатор фокуса для клавиатурной навигации */
+        .auth-form input:focus-visible {
+            outline: 2px solid #7779ff;
+            outline-offset: 2px;
+        }
+
+        /* Кнопка отправки формы */
+        .auth-form button {
+            min-height: 44px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        /* Состояние кнопки во время запроса */
+        .auth-form button:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+
+        /* Переключение между входом и регистрацией */
+        .auth-switch {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Кнопка переключения формы */
+        .auth-switch button {
+            padding: 4px;
+            border: none;
+            background: none;
+            color: #a5a7ff;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .auth-switch button:hover {
+            text-decoration: underline;
+        }
+
+        .auth-switch button:focus-visible {
+            outline: 2px solid #7779ff;
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+
+        /* Область для сообщений сервера */
+        .auth-message {
+            min-height: 20px;
+            margin-top: 14px;
+            margin-bottom: 0;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        /* Сообщение об ошибке */
+        .auth-message.error {
+            color: #ff8585;
+        }
+
+        /* Сообщение об успешной операции */
+        .auth-message.success {
+            color: #73d9a0;
+        }
+
+        /* Атрибут hidden должен скрывать элемент независимо от других стилей */
+        [hidden] {
+            display: none !important;
+        }
+
+        /* =========================================
+           Цвета светлой темы
+           ========================================= */
+
+        body.light-theme {
+            background: #f3f5fa;
+            color: #202438;
+        }
+
+        body.light-theme .auth-card {
+            background: #ffffff;
+            border-color: #dce1ed;
+            box-shadow: 0 16px 48px rgb(32 36 56 / 8%);
+        }
+
+        body.light-theme .auth-description {
+            color: #687089;
+        }
+
+        body.light-theme .auth-form input {
+            background: #f7f8fc;
+            color: #202438;
+            border-color: #d1d8e8;
+        }
+
+        body.light-theme .auth-switch button {
+            color: #5558d9;
+        }
+
+        /* =========================================
+           Адаптация для небольших экранов
+           ========================================= */
+
+        @media (max-width: 480px) {
+            .auth-page {
+                padding: 16px;
+            }
+
+            .auth-card {
+                padding: 24px 20px;
+            }
+        }
+
+        /* Уменьшаем анимации для пользователей,
+           которые отключили движение в настройках системы */
+        @media (prefers-reduced-motion: reduce) {
+            .auth-card,
+            .auth-form button,
+            .auth-switch button {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Основная область страницы авторизации -->
+    <main class="auth-page">
+        <section class="auth-card" aria-labelledby="authTitle">
+            <div class="auth-language-row">
+                <label for="authLanguage" id="authLanguageLabel">Язык интерфейса</label>
+                <select id="authLanguage" aria-label="Interface language">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+
+            <!-- Название приложения -->
+            <h1 id="authTitle">TaskBoard</h1>
+
+            <!-- Текст меняется в зависимости от выбранной формы -->
+            <p class="auth-description" id="authDescription">
+                Войдите в свой аккаунт, чтобы продолжить
+            </p>
+
+            <!-- =========================================
+                 ФОРМА ВХОДА В АККАУНТ
+                 ========================================= -->
+            <form
+                class="auth-form"
+                id="loginForm"
+                aria-label="Вход в аккаунт"
+            >
+                <!-- Электронная почта зарегистрированного пользователя -->
+                <label for="loginEmail">
+                    <span id="loginEmailLabel">Электронная почта</span>
+
+                    <input
+                        id="loginEmail"
+                        type="email"
+                        name="email"
+                        maxlength="255"
+                        autocomplete="email"
+                        required
+                    >
+                </label>
+
+                <!-- Пароль зарегистрированного пользователя -->
+                <label for="loginPassword">
+                    <span id="loginPasswordLabel">Пароль</span>
+
+                    <input
+                        id="loginPassword"
+                        type="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </label>
+
+                <!-- Отправка данных для авторизации -->
+                <button type="submit" id="loginSubmit" class="add-button">Войти</button>
+            </form>
+
+            <!-- =========================================
+                 ФОРМА РЕГИСТРАЦИИ
+                 ========================================= -->
+            <form
+                class="auth-form"
+                id="registerForm"
+                aria-label="Регистрация нового аккаунта"
+                hidden
+            >
+                <!-- Имя нового пользователя -->
+                <label for="registerUsername">
+                    <span id="registerUsernameLabel">Имя пользователя</span>
+
+                    <input
+                        id="registerUsername"
+                        type="text"
+                        name="username"
+                        minlength="2"
+                        maxlength="50"
+                        autocomplete="username"
+                        required
+                    >
+                </label>
+
+                <!-- Электронная почта нового пользователя -->
+                <label for="registerEmail">
+                    <span id="registerEmailLabel">Электронная почта</span>
+
+                    <input
+                        id="registerEmail"
+                        type="email"
+                        name="email"
+                        maxlength="255"
+                        autocomplete="email"
+                        required
+                    >
+                </label>
+
+                <!-- Пароль нового пользователя -->
+                <label for="registerPassword">
+                    <span id="registerPasswordLabel">Пароль (минимум 8 символов)</span>
+
+                    <input
+                        id="registerPassword"
+                        type="password"
+                        name="password"
+                        minlength="8"
+                        maxlength="72"
+                        autocomplete="new-password"
+                        required
+                    >
+                </label>
+
+                <!-- Создание новой учётной записи -->
+                <button type="submit" id="registerSubmit" class="add-button">Создать аккаунт</button>
+            </form>
+
+            <!-- Сообщения об ошибках и результатах операций -->
+            <p
+                class="auth-message"
+                id="authMessage"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <!-- Переключение между формами входа и регистрации -->
+            <div class="auth-switch">
+                <span id="switchText">Нет аккаунта?</span>
+
+                <button
+                    type="button"
+                    id="switchButton"
+                >
+                    Зарегистрироваться
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Применяем сохранённую тему до загрузки основного JavaScript.
+         Если localStorage недоступен, используется тёмная тема. -->
+    <script>
+        (() => {
+            try {
+                const savedTheme =
+                    localStorage.getItem("taskboardTheme");
+
+                document.body.classList.toggle(
+                    "light-theme",
+                    savedTheme === "light"
+                );
+            } catch (error) {
+                // Не прерываем загрузку страницы,
+                // если браузер запрещает доступ к localStorage.
+                document.body.classList.remove("light-theme");
+            }
+        })();
+    </script>
+
+    <!-- Обработка входа, регистрации и переключения форм -->
+    <script src="/js/auth.js"></script>
+</body>
+</html>

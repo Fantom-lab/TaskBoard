@@ -1,0 +1,525 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!-- Кодировка страницы и адаптация к мобильным устройствам -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Название приложения во вкладке браузера -->
+    <title>TaskBoard — Планировщик задач</title>
+
+    <!-- Основные стили приложения -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <!-- Основной контейнер приложения -->
+    <div class="container">
+
+        <!-- ===================================================
+             ШАПКА ПРИЛОЖЕНИЯ
+             =================================================== -->
+        <header>
+            <!-- Название и краткое описание приложения -->
+            <div class="header-brand">
+                <div class="logo">TaskBoard</div>
+                <div class="subtitle" id="siteSubtitle">
+                    Твои задачи — под контролем
+                </div>
+            </div>
+
+            <!-- Основные действия и настройки пользователя -->
+            <div class="header-actions">
+                <!-- Аватар слева от кнопки профиля; оба элемента открывают профиль -->
+                <button type="button" id="headerAvatarButton" class="header-avatar-button" aria-label="Открыть профиль" title="Мой профиль">
+                    <img id="headerAvatarImage" alt="" hidden>
+                    <svg id="headerAvatarPlaceholder" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle cx="50" cy="50" r="49" fill="#dbeafe"/>
+                        <circle cx="50" cy="35" r="17" fill="#3b82f6"/>
+                        <path d="M17 88 C19 65 32 54 50 54 C68 54 81 65 83 88 C65 100 35 100 17 88Z" fill="#2563eb"/>
+                    </svg>
+                </button>
+                <button type="button" id="profileButton" class="settings-button">Мой профиль</button>
+
+                <!-- Переключение темы -->
+                <button type="button" id="themeToggle" class="settings-button" aria-label="Переключить тему оформления">☀️ Светлая тема</button>
+
+                <!-- Выбор языка интерфейса -->
+                <select id="languageSelect" class="settings-select" aria-label="Язык интерфейса">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                </select>
+
+                <button type="button" id="logoutButton" class="settings-button">Выйти</button>
+                <button type="button" id="addButton" class="add-button">+ Добавить задачу</button>
+            </div>
+        </header>
+
+        <!-- ===================================================
+             КАНБАН-ДОСКА
+             =================================================== -->
+        <main class="board" aria-label="Доска задач">
+
+            <!-- Колонка задач, ожидающих выполнения -->
+            <section class="column" aria-labelledby="todoTitle">
+                <div class="column-header">
+                    <h2 id="todoTitle">К выполнению</h2>
+
+                    <!-- Количество задач в колонке -->
+                    <span class="counter" id="todoCounter">0</span>
+                </div>
+
+                <!-- Карточки задач со статусом «К выполнению» -->
+                <div
+                    id="todoTasks"
+                    class="task-list"
+                    aria-live="polite"
+                ></div>
+            </section>
+
+            <!-- Колонка задач, находящихся в работе -->
+            <section class="column" aria-labelledby="progressTitle">
+                <div class="column-header">
+                    <h2 id="progressTitle">В процессе</h2>
+
+                    <!-- Количество задач в работе -->
+                    <span class="counter" id="progressCounter">0</span>
+                </div>
+
+                <!-- Карточки задач со статусом «В процессе» -->
+                <div
+                    id="progressTasks"
+                    class="task-list"
+                    aria-live="polite"
+                ></div>
+            </section>
+
+            <!-- Колонка завершённых задач -->
+            <section class="column" aria-labelledby="doneTitle">
+                <div class="column-header">
+                    <h2 id="doneTitle">Выполнено</h2>
+
+                    <!-- Количество завершённых задач -->
+                    <span class="counter" id="doneCounter">0</span>
+                </div>
+
+                <!-- Карточки завершённых задач -->
+                <div
+                    id="doneTasks"
+                    class="task-list"
+                    aria-live="polite"
+                ></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- =======================================================
+         МОДАЛЬНОЕ ОКНО СОЗДАНИЯ И РЕДАКТИРОВАНИЯ ЗАДАЧИ
+         ======================================================= -->
+    <div
+        class="modal-overlay"
+        id="taskModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+    >
+        <div class="modal">
+
+            <!-- Заголовок окна и кнопка закрытия -->
+            <div class="modal-header">
+                <h2 id="modalTitle">Новая задача</h2>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    id="closeModal"
+                    aria-label="Закрыть форму"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <!-- Форма создания и редактирования задачи -->
+            <form id="taskForm">
+
+                <!-- Название задачи -->
+                <label for="taskTitle">Название задачи</label>
+                <input
+                    type="text"
+                    id="taskTitle"
+                    name="title"
+                    placeholder="Например, подготовить проект"
+                    maxlength="200"
+                    autocomplete="off"
+                    required
+                >
+
+                <!-- Подробное описание задачи -->
+                <label for="taskDescription">Описание</label>
+                <textarea
+                    id="taskDescription"
+                    name="description"
+                    placeholder="Что необходимо сделать?"
+                    rows="3"
+                    maxlength="5000"
+                ></textarea>
+
+                <!-- Приоритет выполнения -->
+                <label for="taskPriority">Приоритет</label>
+                <select id="taskPriority" name="priority">
+                    <option value="low">Низкий</option>
+                    <option value="medium" selected>Средний</option>
+                    <option value="high">Высокий</option>
+                </select>
+
+                <!-- Статус задачи определяет её колонку -->
+                <label for="taskColumn">Статус задачи</label>
+                <select id="taskColumn" name="status">
+                    <option value="0">К выполнению</option>
+                    <option value="1">В процессе</option>
+                    <option value="2">Выполнено</option>
+                </select>
+
+                <!-- Необязательная дата завершения -->
+                <label for="taskDeadline">Срок выполнения</label>
+                <input
+                    type="date"
+                    id="taskDeadline"
+                    name="due_date"
+                >
+
+                <!-- Кнопки управления формой -->
+                <div class="modal-actions">
+                    <button
+                        type="button"
+                        class="cancel-button"
+                        id="cancelModal"
+                    >
+                        Отмена
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="add-button"
+                    >
+                        Создать задачу
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ
+         ======================================================= -->
+    <div
+        class="modal-overlay"
+        id="deleteModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteModalTitle"
+    >
+        <div class="modal delete-modal">
+
+            <!-- Заголовок окна удаления -->
+            <div class="modal-header">
+                <h2 id="deleteModalTitle">Удаление задачи</h2>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    id="closeDeleteModal"
+                    aria-label="Закрыть окно"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <!-- Предупреждение о необратимом действии -->
+            <p class="delete-message">
+                Ты действительно хочешь удалить эту задачу?
+                Это действие нельзя отменить.
+            </p>
+
+            <!-- Подтверждение или отмена удаления -->
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    class="cancel-button"
+                    id="cancelDelete"
+                >
+                    Отмена
+                </button>
+
+                <button
+                    type="button"
+                    class="delete-confirm-button"
+                    id="confirmDelete"
+                >
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         ЛИЧНЫЙ КАБИНЕТ И НАСТРОЙКИ ПРОФИЛЯ
+         ======================================================= -->
+    <div
+        class="modal-overlay"
+        id="profileModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profileModalTitle"
+    >
+        <div class="modal profile-modal">
+
+            <!-- Заголовок профиля и кнопка закрытия -->
+            <div class="modal-header">
+                <h2 id="profileModalTitle">Мой профиль</h2>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    id="closeProfileModal"
+                    aria-label="Закрыть профиль"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <!-- Основные данные пользователя и фотография -->
+            <div class="profile-info">
+
+                <!-- Фотография пользователя или стандартная заглушка -->
+                <div class="profile-avatar-wrapper">
+                    <label for="avatarInput" class="profile-avatar" title="Изменить фотографию">
+                        <img id="profileAvatarImage" src="" alt="Фотография профиля" hidden>
+
+                        <!-- Синий рисунок человека, если фотографии нет -->
+                        <svg
+                            id="profileAvatarPlaceholder"
+                            class="avatar-placeholder-icon"
+                            viewBox="0 0 100 100"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                        >
+                            <circle cx="50" cy="50" r="50" fill="#dbeafe"/>
+                            <circle cx="50" cy="35" r="17" fill="#3b82f6"/>
+                            <path
+                                d="M17 88 C19 65 32 54 50 54
+                                   C68 54 81 65 83 88
+                                   C65 100 35 100 17 88Z"
+                                fill="#2563eb"
+                            />
+                        </svg>
+                    </label>
+
+                    <input
+                        type="file"
+                        id="avatarInput"
+                        accept="image/jpeg,image/png,image/webp"
+                        hidden
+                    >
+
+                    <label for="avatarInput" class="avatar-select-button">
+                        Выбрать файл
+                    </label>
+
+                    <p id="avatarFileName" class="avatar-file-name" aria-live="polite">
+                        Файл не выбран
+                    </p>
+
+                    <p id="avatarMessage" class="avatar-message" role="status" aria-live="polite"></p>
+
+                    <button
+                        type="button"
+                        id="removeAvatarButton"
+                        class="remove-avatar-button"
+                        hidden
+                    >
+                        Удалить фотографию
+                    </button>
+                </div>
+
+                <!-- Имя пользователя и адрес электронной почты -->
+                <div class="profile-details">
+                    <span id="profileUsernameLabel">
+                        Имя пользователя
+                    </span>
+
+                    <h3 id="profileUsername">Загрузка...</h3>
+
+                    <span id="profileEmailLabel">
+                        Электронная почта
+                    </span>
+
+                    <p id="profileEmail">Загрузка...</p>
+                </div>
+            </div>
+
+            <!-- =================================================
+                 ИЗМЕНЕНИЕ ИМЕНИ ПОЛЬЗОВАТЕЛЯ
+                 ================================================= -->
+            <form id="usernameForm" class="profile-form">
+
+                <label for="newUsername" id="newUsernameLabel">
+                    Новое имя пользователя
+                </label>
+
+                <div class="profile-form-row">
+                    <input
+                        type="text"
+                        id="newUsername"
+                        name="username"
+                        minlength="2"
+                        maxlength="50"
+                        autocomplete="username"
+                        required
+                    >
+
+                    <button
+                        type="submit"
+                        class="add-button"
+                        id="saveUsernameButton"
+                    >
+                        Сохранить имя
+                    </button>
+                </div>
+
+                <!-- Здесь отображается результат операции -->
+                <p
+                    class="profile-form-message"
+                    id="usernameMessage"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </form>
+
+            <!-- =================================================
+                 ИЗМЕНЕНИЕ ПАРОЛЯ
+                 ================================================= -->
+            <form id="passwordForm" class="profile-form">
+
+                <h3 id="changePasswordTitle">Изменить пароль</h3>
+
+                <!-- Текущий пароль нужен для подтверждения личности -->
+                <label for="currentPassword" id="currentPasswordLabel">
+                    Текущий пароль
+                </label>
+
+                <input
+                    type="password"
+                    id="currentPassword"
+                    name="currentPassword"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <!-- Новый пароль -->
+                <label for="newPassword" id="newPasswordLabel">
+                    Новый пароль
+                </label>
+
+                <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    minlength="8"
+                    maxlength="72"
+                    autocomplete="new-password"
+                    required
+                >
+
+                <p class="profile-form-hint" id="passwordHint">
+                    Не менее 8 символов.
+                </p>
+
+                <button
+                    type="submit"
+                    class="add-button"
+                    id="savePasswordButton"
+                >
+                    Изменить пароль
+                </button>
+
+                <!-- Здесь отображается результат смены пароля -->
+                <p
+                    class="profile-form-message"
+                    id="passwordMessage"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </form>
+
+            <!-- =================================================
+                 ТЕКУЩИЕ НАСТРОЙКИ ПОЛЬЗОВАТЕЛЯ
+                 ================================================= -->
+            <div class="profile-settings">
+
+                <!-- Выбранная тема оформления -->
+                <div class="profile-setting-row">
+                    <span id="profileThemeLabel">
+                        Тема оформления
+                    </span>
+
+                    <strong id="profileTheme">—</strong>
+                </div>
+
+                <!-- Выбранный язык интерфейса -->
+                <div class="profile-setting-row">
+                    <span id="profileLanguageLabel">
+                        Язык интерфейса
+                    </span>
+
+                    <strong id="profileLanguage">—</strong>
+                </div>
+            </div>
+
+            <!-- Закрытие личного кабинета -->
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    class="cancel-button"
+                    id="closeProfileButton"
+                >
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Отдельное окно подтверждения удаления аватара -->
+    <div
+        class="modal-overlay"
+        id="avatarDeleteModal"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="avatarDeleteTitle"
+    >
+        <div class="modal avatar-delete-modal">
+            <div class="modal-header">
+                <h2 id="avatarDeleteTitle">Удалить фотографию?</h2>
+            </div>
+
+            <p class="delete-message">
+                Вместо фотографии будет отображаться стандартный аватар.
+            </p>
+
+            <div class="modal-actions">
+                <button type="button" class="cancel-button" id="cancelAvatarDelete">
+                    Отмена
+                </button>
+                <button type="button" class="delete-confirm-button" id="confirmAvatarDelete">
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основная логика доски, задач и настроек -->
+    <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "taskboard",
+  "version": "1.0.0",
+  "description": "Простой Kanban-планировщик задач для студентов",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check:server": "node --check server.js",
+    "check:auth": "node --check routes/auth.js",
+    "check:tasks": "node --check routes/tasks.js",
+    "check:client": "node --check public/js/app.js",
+    "check:login": "node --check public/js/auth.js"
+  },
+  "keywords": [
+    "taskboard",
+    "kanban",
+    "student-planner"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0",
+    "multer": "^2.4.0",
+    "pg": "^8.23.1"
+  }
+}
